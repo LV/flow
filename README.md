@@ -9,7 +9,9 @@ Upon launching the program, a 'session' is created. All notes created during thi
 - `Ctrl-C` to quit
 
 ## Config
-```$XDG_CONFIG_HOME/flow/config.toml
+```toml
+# $XDG_CONFIG_HOME/flow/config.toml
+
 path = "~/flow"
 ```
 
