@@ -6,7 +6,7 @@ add_compile_options(-std=c++2c)
 
 add_subdirectory(third_party/ftxui)
 
-add_executable(flow src/main.cpp)
+add_executable(flow flow.cpp)
 
 include_directories(third_party/tomlplusplus/include)
 
