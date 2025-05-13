@@ -14,6 +14,48 @@ struct Config {
     std::string session_path = "./";
 };
 
+
+std::string expand_user_path(const std::string& path) {
+    if (path.starts_with("~/")) {
+        const char* home = std::getenv("HOME");
+        if (home && *home) {
+            return std::filesystem::path(home) / path.substr(2);
+        }
+    }
+    return path;
+}
+
+
+Config read_config() {
+    Config config = Config();
+
+    // Get config path using XDG standard
+    const char* xdg = std::getenv("XDG_CONFIG_HOME");
+    const char* home = std::getenv("HOME");
+
+    std::string config_path = "";
+
+    if (home && *home) {
+        config.session_path = std::filesystem::path(home) / "flow";
+        config_path = std::filesystem::path(home) / ".config" / "flow" / "config.toml";
+    }
+
+    if (xdg && *xdg) {
+        config_path = std::filesystem::path(xdg) / "flow" / "config.toml";
+    }
+
+
+    try {
+        toml::table tbl = toml::parse_file(config_path);
+        config.session_path = expand_user_path(tbl["path"].value_or("./"));
+    } catch (const toml::parse_error& err) {
+        std::cerr << "Warning: Could not load config file in '$(XDG_CONFIG_HOME)/flow/config.toml':\n" 
+                  << err << "\nUsing defaults instead.\n";
+    }
+    return config;
+}
+
+
 std::string current_timestamp() {
     auto now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
@@ -52,39 +94,9 @@ void write_file(const std::string& content, const std::string& filename) {
 }
 
 
-Config read_config() {
-    Config config = Config();
-
-    // Get config path using XDG standard
-    const char* xdg = std::getenv("XDG_CONFIG_HOME");
-    const char* home = std::getenv("HOME");
-
-    std::string config_path = "";
-
-    if (home && *home) {
-        config.session_path = std::filesystem::path(home) / "flow";
-        config_path = std::filesystem::path(home) / ".config" / "flow" / "config.toml";
-    }
-
-    if (xdg && *xdg) {
-        config_path = std::filesystem::path(xdg) / "flow" / "config.toml";
-    }
-
-
-    try {
-        toml::table tbl = toml::parse_file(config_path);
-        config.session_path = tbl["path"].value_or("./");
-    } catch (const toml::parse_error& err) {
-        std::cerr << "Warning: Could not load config file in '$(XDG_CONFIG_HOME)/flow/config.toml':\n" 
-                  << err << "\nUsing defaults instead.\n";
-    }
-    return config;
-}
-
-
 void run_application(Config config) {
     std::string buffer_data;
-    const std::string session_folder_name = "session-" + current_timestamp();
+    const std::string session_folder_name = current_timestamp(); // Necessary for subsequent pushes to remain in same session
     const std::string base_path = config.session_path;
 
     ftxui::Component input_buffer = ftxui::Input(&buffer_data, "Write your thought...");
