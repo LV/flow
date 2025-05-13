@@ -8,6 +8,13 @@ Upon launching the program, a 'session' is created. All notes created during thi
 - `Tab` to push current note to session and create a new one
 - `Ctrl-C` to quit
 
+## Config
+```$XDG_CONFIG_HOME/flow/config.toml
+path = "~/flow"
+```
+
+`path` determines where the session folders (and notes) will be written to.
+
 ## Setting Up Project
 Clone all required third party libraries:
 ```sh
